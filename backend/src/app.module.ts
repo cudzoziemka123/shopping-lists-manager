@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AuthModule } from './modules/auth.module';
 
 @Module({
   imports: [
     // Загружаем переменные окружения из .env
     ConfigModule.forRoot({
-      isGlobal: true, // Делает ConfigModule доступным везде
+      isGlobal: true,
     }),
+
     // Настройка подключения к PostgreSQL
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -18,11 +18,12 @@ import { AppService } from './app.service';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_DATABASE || 'shopping_lists',
-      entities: [],
+      entities: [__dirname + '/**/*.schema{.ts,.js}'],
       synchronize: true,
     }),
+
+    // Регистрируем AuthModule
+    AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
