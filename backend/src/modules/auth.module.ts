@@ -9,6 +9,7 @@ import { AuthController } from '../infrastructure/http/controllers/auth.controll
 
 // Application
 import { RegisterUserUseCase } from '../application/use-cases/auth/register-user.use-case';
+import { LoginUserUseCase } from '../application/use-cases/auth/login-user.use-case'; // ← Добавили
 
 // Domain
 import { USER_REPOSITORY } from '../domain/repositories/user.repository.interface';
@@ -26,6 +27,7 @@ import { USER_REPOSITORY } from '../domain/repositories/user.repository.interfac
   controllers: [AuthController],
   providers: [
     RegisterUserUseCase,
+    LoginUserUseCase,
     {
       provide: USER_REPOSITORY,
       useClass: UserRepositoryImpl,
