@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport/dist/passport.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Infrastructure
 import { UserSchema } from '../infrastructure/database/typeorm/entities/user.schema';
@@ -13,26 +15,33 @@ import { LoginUserUseCase } from '../application/use-cases/auth/login-user.use-c
 
 // Domain
 import { USER_REPOSITORY } from '../domain/repositories/user.repository.interface';
+import { JwtStrategy } from 'src/infrastructure/http/strategies/jwt.strategy';
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     TypeOrmModule.forFeature([UserSchema]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-      signOptions: {
-        expiresIn: '7d',
-      },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: '7d',
+        },
+      }),
     }),
   ],
   controllers: [AuthController],
   providers: [
     RegisterUserUseCase,
     LoginUserUseCase,
+    JwtStrategy,
     {
       provide: USER_REPOSITORY,
       useClass: UserRepositoryImpl,
     },
   ],
-  exports: [USER_REPOSITORY],
+  exports: [USER_REPOSITORY, JwtStrategy, PassportModule, JwtModule],
 })
 export class AuthModule {}
