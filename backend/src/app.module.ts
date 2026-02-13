@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth.module';
 import { ListsModule } from './modules/lists.module';
 import { ItemsModule } from './modules/items.module';
+import { WebSocketModule } from './modules/websocket.module';
 
 @Module({
   imports: [
@@ -24,10 +25,11 @@ import { ItemsModule } from './modules/items.module';
       synchronize: true,
     }),
 
-    // Регистрируем AuthModule, ListsModule и другие модули по мере их создания
+    // Регистрируем AuthModule, ListsModule, ItemsModule и WebSocketModule
     AuthModule,
     ListsModule,
     ItemsModule,
+    WebSocketModule,
   ],
 })
 export class AppModule {}

@@ -10,6 +10,7 @@ import { ITEM_REPOSITORY } from '../../../domain/repositories/item.repository.in
 import type { IListMemberRepository } from '../../../domain/repositories/list-member.repository.interface';
 import { LIST_MEMBER_REPOSITORY } from '../../../domain/repositories/list-member.repository.interface';
 import { UpdateItemDto } from '../../dto/items/update-item.dto';
+import { ListsGateway } from '../../../infrastructure/websocket/lists.gateway';
 
 @Injectable()
 export class UpdateItemUseCase {
@@ -18,6 +19,7 @@ export class UpdateItemUseCase {
     private readonly itemRepository: IItemRepository,
     @Inject(LIST_MEMBER_REPOSITORY)
     private readonly memberRepository: IListMemberRepository,
+    private readonly listsGateway: ListsGateway,
   ) {}
 
   async execute(
@@ -50,7 +52,11 @@ export class UpdateItemUseCase {
       priority: dto.priority ?? item.priority,
       updatedAt: new Date(),
     });
+    const savedItem = await this.itemRepository.update(updatedItem);
 
-    return await this.itemRepository.update(updatedItem);
+    // ← Отправляем WebSocket событие
+    this.listsGateway.emitItemUpdated(item.listId, savedItem);
+
+    return savedItem;
   }
 }
