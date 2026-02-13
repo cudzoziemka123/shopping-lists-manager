@@ -8,7 +8,7 @@ import type { IItemRepository } from '../../../domain/repositories/item.reposito
 import { ITEM_REPOSITORY } from '../../../domain/repositories/item.repository.interface';
 import type { IListMemberRepository } from '../../../domain/repositories/list-member.repository.interface';
 import { LIST_MEMBER_REPOSITORY } from '../../../domain/repositories/list-member.repository.interface';
-
+import { ListsGateway } from '../../../infrastructure/websocket/lists.gateway';
 @Injectable()
 export class DeleteItemUseCase {
   constructor(
@@ -16,6 +16,7 @@ export class DeleteItemUseCase {
     private readonly itemRepository: IItemRepository,
     @Inject(LIST_MEMBER_REPOSITORY)
     private readonly memberRepository: IListMemberRepository,
+    private readonly listsGateway: ListsGateway,
   ) {}
 
   async execute(itemId: string, userId: string): Promise<void> {
@@ -34,7 +35,11 @@ export class DeleteItemUseCase {
       throw new ForbiddenException('You are not a member of this list');
     }
 
+    const listId = item.listId;
     // 3. Удалить товар
     await this.itemRepository.delete(itemId);
+
+    // 4. Отправляем WebSocket событие
+    this.listsGateway.emitItemDeleted(listId, itemId);
   }
 }

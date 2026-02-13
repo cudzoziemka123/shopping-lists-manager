@@ -21,6 +21,9 @@ import { ITEM_REPOSITORY } from '../domain/repositories/item.repository.interfac
 import { SHOPPING_LIST_REPOSITORY } from '../domain/repositories/shopping-list.repository.interface';
 import { LIST_MEMBER_REPOSITORY } from '../domain/repositories/list-member.repository.interface';
 
+// WebSocket
+import { WebSocketModule } from './websocket.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -28,6 +31,7 @@ import { LIST_MEMBER_REPOSITORY } from '../domain/repositories/list-member.repos
       ShoppingListSchema,
       ListMemberSchema,
     ]),
+    WebSocketModule,
   ],
   controllers: [ItemsController],
   providers: [

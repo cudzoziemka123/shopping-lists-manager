@@ -17,6 +17,7 @@ import { SHOPPING_LIST_REPOSITORY } from '../../../domain/repositories/shopping-
 import type { IListMemberRepository } from '../../../domain/repositories/list-member.repository.interface';
 import { LIST_MEMBER_REPOSITORY } from '../../../domain/repositories/list-member.repository.interface';
 import { CreateItemDto } from '../../dto/items/create-item.dto';
+import { ListsGateway } from '../../../infrastructure/websocket/lists.gateway';
 
 @Injectable()
 export class CreateItemUseCase {
@@ -27,6 +28,7 @@ export class CreateItemUseCase {
     private readonly listRepository: IShoppingListRepository,
     @Inject(LIST_MEMBER_REPOSITORY)
     private readonly memberRepository: IListMemberRepository,
+    private readonly listsGateway: ListsGateway,
   ) {}
 
   async execute(
@@ -63,7 +65,11 @@ export class CreateItemUseCase {
       createdAt: now,
       updatedAt: now,
     });
+    const savedItem = await this.itemRepository.save(newItem);
 
-    return await this.itemRepository.save(newItem);
+    // ← Отправляем WebSocket событие
+    this.listsGateway.emitItemCreated(listId, savedItem);
+
+    return savedItem;
   }
 }
