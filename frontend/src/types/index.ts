@@ -77,3 +77,17 @@ export interface UpdateItemRequest {
   status?: ItemStatus;
   priority?: ItemPriority;
 }
+
+export interface WebSocketContextType {
+  isConnected: boolean;
+  joinList: (listId: string) => void;
+  leaveList: (listId: string) => void;
+  subscribeToItems: (
+    listId: string,
+    callbacks: {
+      onItemCreated?: (item: Item) => void;
+      onItemUpdated?: (item: Item) => void;
+      onItemDeleted?: (data: { itemId: string }) => void;
+    }
+  ) => () => void;
+}
