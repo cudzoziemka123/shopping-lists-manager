@@ -23,7 +23,7 @@ export class CreateListUseCase {
   async execute(dto: CreateListDto, userId: string): Promise<ShoppingList> {
     const now = new Date();
 
-    // 1. Создаем список
+    // 1. Create new list
     const newList = new ShoppingList({
       id: randomUUID(),
       title: dto.title,
@@ -35,7 +35,7 @@ export class CreateListUseCase {
 
     const savedList = await this.listRepository.save(newList);
 
-    // 2. Добавляем создателя как owner в list_members
+    // 2. Add creator as owner to list_members
     const ownerMember = new ListMember({
       id: randomUUID(),
       listId: savedList.id,

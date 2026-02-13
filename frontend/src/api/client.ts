@@ -9,7 +9,7 @@ export const apiClient = axios.create({
   },
 });
 
-// Автоматически добавляем токен к каждому запросу
+// Automatically add token to each request
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -23,7 +23,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Обработка ошибок (автоматический logout при 401)
+// Error handling (automatic logout on 401)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {

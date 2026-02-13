@@ -34,13 +34,13 @@ export class CreateItemUseCase {
     dto: CreateItemDto,
     userId: string,
   ): Promise<Item> {
-    // 1. Проверить что список существует
+    // 1. Check that list exists
     const list = await this.listRepository.findById(listId);
     if (!list) {
       throw new NotFoundException('List not found');
     }
 
-    // 2. Проверить что пользователь - участник списка
+    // 2. Check that user is a list member
     const member = await this.memberRepository.findByUserAndList(
       userId,
       listId,
@@ -49,7 +49,7 @@ export class CreateItemUseCase {
       throw new ForbiddenException('You are not a member of this list');
     }
 
-    // 3. Создать товар
+    // 3. Create item
     const now = new Date();
     const newItem = new Item({
       id: randomUUID(),

@@ -1,15 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { authApi } from '../api/auth';
-import type { User, LoginRequest, RegisterRequest } from '../types';
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
+import type { User, LoginRequest, RegisterRequest, AuthContextType } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -24,8 +15,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(accessToken);
     localStorage.setItem('accessToken', accessToken);
     
-    // TODO: получить данные пользователя из токена или API
-    // Пока устанавливаем заглушку
+    // TODO: get user data from token or API
+    // For now, set a placeholder
     setUser({ id: '', username: data.email, email: data.email, createdAt: '' });
   };
 
@@ -33,7 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const newUser = await authApi.register(data);
     setUser(newUser);
     
-    // После регистрации автоматически логинимся
+    // After registration, automatically log in
     await login({ email: data.email, password: data.password });
   };
 

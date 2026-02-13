@@ -14,7 +14,7 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute(dto: RegisterDto): Promise<User> {
-    // 1. Проверяем что email не занят
+    // 1. Check that email is not taken
     const existingUserByEmail = await this.userRepository.findByEmail(
       dto.email,
     );
@@ -22,7 +22,7 @@ export class RegisterUserUseCase {
       throw new ConflictException('Email already exists');
     }
 
-    // 2. Проверяем что username не занят
+    // 2. Check that username is not taken
     const existingUserByUsername = await this.userRepository.findByUsername(
       dto.username,
     );
@@ -30,7 +30,7 @@ export class RegisterUserUseCase {
       throw new ConflictException('Username already exists');
     }
 
-    // 3. Хешируем пароль
+    // 3. Hash the password
     const passwordHash = await argon2id({
       password: dto.password,
       salt: randomUUID().replace(/-/g, '').slice(0, 16), // 16 bytes salt
@@ -41,7 +41,7 @@ export class RegisterUserUseCase {
       outputType: 'encoded',
     });
 
-    // 4. Создаем нового пользователя
+    // 4. Create a new user
     const newUser = new User({
       id: randomUUID(),
       username: dto.username,
@@ -50,7 +50,7 @@ export class RegisterUserUseCase {
       createdAt: new Date(),
     });
 
-    // 5. Сохраняем в БД
+    // 5. Save to database
     return await this.userRepository.save(newUser);
   }
 }

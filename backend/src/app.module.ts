@@ -7,12 +7,12 @@ import { ItemsModule } from './modules/items.module';
 
 @Module({
   imports: [
-    // Загружаем переменные окружения из .env
+    // Load environment variables from .env
     ConfigModule.forRoot({
       isGlobal: true,
     }),
 
-    // Настройка подключения к PostgreSQL
+    // PostgreSQL database connection configuration
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
@@ -24,7 +24,7 @@ import { ItemsModule } from './modules/items.module';
       synchronize: true,
     }),
 
-    // Регистрируем AuthModule, ListsModule и другие модули по мере их создания
+    // Register AuthModule, ListsModule and other modules as they are created
     AuthModule,
     ListsModule,
     ItemsModule,

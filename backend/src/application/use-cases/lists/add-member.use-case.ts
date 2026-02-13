@@ -34,18 +34,18 @@ export class AddMemberUseCase {
     dto: AddMemberDto,
     currentUserId: string,
   ): Promise<ListMember> {
-    // 1. Проверить что список существует
+    // 1. Check that list exists
     const list = await this.listRepository.findById(listId);
     if (!list) {
       throw new NotFoundException('List not found');
     }
 
-    // 2. Проверить что текущий пользователь - owner
+    // 2. Check that current user is the owner
     if (list.ownerId !== currentUserId) {
       throw new ForbiddenException('Only owner can add members');
     }
 
-    // 3. Найти пользователя по username или email
+    // 3. Find user by username or email
     let userToAdd = await this.userRepository.findByUsername(
       dto.usernameOrEmail,
     );
@@ -56,7 +56,7 @@ export class AddMemberUseCase {
       throw new NotFoundException('User not found');
     }
 
-    // 4. Проверить что пользователь еще не участник
+    // 4. Check that user is not already a member
     const existingMember = await this.memberRepository.findByUserAndList(
       userToAdd.id,
       listId,
@@ -65,7 +65,7 @@ export class AddMemberUseCase {
       throw new ConflictException('User is already a member of this list');
     }
 
-    // 5. Добавить участника
+    // 5. Add the member
     const newMember = new ListMember({
       id: randomUUID(),
       listId: listId,

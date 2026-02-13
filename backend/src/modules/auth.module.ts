@@ -15,7 +15,7 @@ import { LoginUserUseCase } from '../application/use-cases/auth/login-user.use-c
 
 // Domain
 import { USER_REPOSITORY } from '../domain/repositories/user.repository.interface';
-import { JwtStrategy } from 'src/infrastructure/http/strategies/jwt.strategy';
+import { JwtStrategy } from '../infrastructure/http/strategies/jwt.strategy';
 
 @Module({
   imports: [

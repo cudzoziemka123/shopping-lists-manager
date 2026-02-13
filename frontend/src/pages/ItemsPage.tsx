@@ -2,17 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { itemsApi } from '../api/items';
 import type { Item, ItemStatus, ItemPriority } from '../types';
+import { useWebSocket } from '../contexts/WebSocketContext'
 import './ItemsPage.css';
 
 export const ItemsPage = () => {
-  const { listId } = useParams<{ listId: string }>();
+  const { listId } = useParams<{ listId: string; }>();
   const navigate = useNavigate();
+  const { isConnected, joinList, leaveList, subscribeToItems } = useWebSocket();
+
 
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Модальное окно создания
+  // Modal window for creating items
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -34,53 +37,88 @@ export const ItemsPage = () => {
     }
   }, [listId]);
 
-  useEffect(() => {
-    if (listId) {
-      loadItems();
+useEffect(() => {
+  if (listId) {
+    loadItems();
+
+    // Присоединяемся к комнате
+    if (isConnected) {
+      joinList(listId);
     }
-  }, [listId, loadItems]);
+
+    // Подписываемся на события
+    const unsubscribe = subscribeToItems(listId, {
+      onItemCreated: (item) => {
+        console.log('🆕 Item created:', item);
+        setItems((prev) => {
+          // Избегаем дубликатов
+          if (prev.find((i) => i.id === item.id)) {
+            return prev;
+          }
+          return [...prev, item];
+        });
+      },
+      onItemUpdated: (item) => {
+        console.log('📝 Item updated:', item);
+        setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
+      },
+      onItemDeleted: (data) => {
+        console.log('🗑️ Item deleted:', data.itemId);
+        setItems((prev) => prev.filter((i) => i.id !== data.itemId));
+      },
+    });
+
+    // Cleanup
+    return () => {
+      if (isConnected) {
+        leaveList(listId);
+      }
+      unsubscribe();
+    };
+  }
+}, [listId, isConnected, loadItems, joinList, leaveList, subscribeToItems]);
 
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!listId) return;
+  e.preventDefault();
+  if (!listId) return;
 
-    setCreating(true);
+  setCreating(true);
 
-    try {
-      const newItem = await itemsApi.create(listId, {
-        name,
-        quantity: parseFloat(quantity),
-        unit: unit || undefined,
-        priority,
-      });
-      setItems([...items, newItem]);
-      setShowCreateModal(false);
-      setName('');
-      setQuantity('1');
-      setUnit('');
-      setPriority('medium' as ItemPriority);
-    } catch  {
-      alert('Ошибка создания товара');
-    } finally {
-      setCreating(false);
-    }
-  };
+  try {
+    await itemsApi.create(listId, {  // ← Просто await, без присваивания
+      name,
+      quantity: parseFloat(quantity),
+      unit: unit || undefined,
+      priority,
+    });
+    // WebSocket добавит товар автоматически через subscribeToItems
+    setShowCreateModal(false);
+    setName('');
+    setQuantity('1');
+    setUnit('');
+    setPriority('medium' as ItemPriority);
+  } catch {
+    alert('Ошибка создания товара');
+  } finally {
+    setCreating(false);
+  }
+};
 
-  const handleToggleStatus = async (item: Item) => {
-    if (!listId) return;
+const handleToggleStatus = async (item: Item) => {
+  if (!listId) return;
 
-    const newStatus: ItemStatus =
-      item.status === 'pending' ? ('purchased' as ItemStatus) : ('pending' as ItemStatus);
+  const newStatus: ItemStatus =
+    item.status === 'pending' ? ('purchased' as ItemStatus) : ('pending' as ItemStatus);
 
-    try {
-      const updatedItem = await itemsApi.update(listId, item.id, {
-        status: newStatus,
-      });
-      setItems(items.map((i) => (i.id === item.id ? updatedItem : i)));
-    } catch  {
-      alert('Ошибка обновления статуса');
-    }
-  };
+  try {
+    await itemsApi.update(listId, item.id, {  // ← Просто await, без присваивания
+      status: newStatus,
+    });
+    // WebSocket обновит автоматически через subscribeToItems
+  } catch {
+    alert('Ошибка обновления статуса');
+  }
+};
 
   const handleDelete = async (itemId: string) => {
     if (!listId) return;
@@ -88,7 +126,7 @@ export const ItemsPage = () => {
 
     try {
       await itemsApi.delete(listId, itemId);
-      setItems(items.filter((item) => item.id !== itemId));
+      // setItems(items.filter((item) => item.id !== itemId)); // то же самое
     } catch  {
       alert('Ошибка удаления товара');
     }
@@ -138,6 +176,11 @@ export const ItemsPage = () => {
           ← Назад к спискам
         </button>
         <h2 className="items-title">Товары</h2>
+        {isConnected && (
+          <span style={{ color: '#10b981', fontSize: '14px', marginLeft: '10px' }}>
+            🟢 Online
+          </span>
+        )}
         <button
           onClick={() => setShowCreateModal(true)}
           className="btn btn-primary"
@@ -164,7 +207,7 @@ export const ItemsPage = () => {
           {pendingItems.length > 0 && (
             <div className="items-section">
               <h3 className="section-title">
-                К покупке ({pendingItems.length})
+                Купить: ({pendingItems.length})
               </h3>
               <div className="items-list">
                 {pendingItems.map((item) => (

@@ -15,7 +15,7 @@ export const ListsPage = () => {
 
   const navigate = useNavigate();
 
-  // Загрузка списков при монтировании
+  // Load lists on component mount
   useEffect(() => {
     loadLists();
   }, []);
@@ -38,7 +38,7 @@ export const ListsPage = () => {
 
     try {
       const newList = await listsApi.create({ title, description });
-      setLists([newList, ...lists]); // Добавляем в начало
+      setLists([newList, ...lists]); // Add to the beginning
       setShowCreateModal(false);
       setTitle('');
       setDescription('');
@@ -131,7 +131,7 @@ export const ListsPage = () => {
         </div>
       )}
 
-      {/* Модальное окно создания списка */}
+      {/* Modal window for creating a list */}
       {showCreateModal && (
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>

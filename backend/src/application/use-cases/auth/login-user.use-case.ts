@@ -14,13 +14,13 @@ export class LoginUserUseCase {
   ) {}
 
   async execute(dto: LoginDto): Promise<{ accessToken: string }> {
-    // 1. Найти пользователя по email
+    // 1. Find user by email
     const user = await this.userRepository.findByEmail(dto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 2. Проверить пароль
+    // 2. Verify password
     const isPasswordValid = await argon2Verify({
       password: dto.password,
       hash: user.passwordHash,
@@ -30,7 +30,7 @@ export class LoginUserUseCase {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. Сгенерировать JWT токен
+    // 3. Generate JWT token
     const payload = {
       sub: user.id,
       email: user.email,

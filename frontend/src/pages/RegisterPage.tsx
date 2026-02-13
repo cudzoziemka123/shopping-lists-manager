@@ -18,7 +18,7 @@ export const RegisterPage = () => {
     e.preventDefault();
     setError('');
 
-    // Валидация
+    // Validation
     if (password !== confirmPassword) {
       setError('Пароли не совпадают');
       return;

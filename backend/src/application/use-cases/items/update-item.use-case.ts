@@ -25,13 +25,13 @@ export class UpdateItemUseCase {
     dto: UpdateItemDto,
     userId: string,
   ): Promise<Item> {
-    // 1. Найти товар
+    // 1. Find the item
     const item = await this.itemRepository.findById(itemId);
     if (!item) {
       throw new NotFoundException('Item not found');
     }
 
-    // 2. Проверить что пользователь - участник списка
+    // 2. Check that user is a list member
     const member = await this.memberRepository.findByUserAndList(
       userId,
       item.listId,
@@ -40,7 +40,7 @@ export class UpdateItemUseCase {
       throw new ForbiddenException('You are not a member of this list');
     }
 
-    // 3. Обновить поля
+    // 3. Update item fields
     const updatedItem = new Item({
       ...item,
       name: dto.name ?? item.name,

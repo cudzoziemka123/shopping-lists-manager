@@ -19,7 +19,7 @@ export class ShoppingListRepositoryImpl implements IShoppingListRepository {
   }
 
   async findByUserId(userId: string): Promise<ShoppingList[]> {
-    // Находим все списки где пользователь является участником через list_members
+    // Find all lists where user is a member via list_members table
     const schemas = await this.repository
       .createQueryBuilder('list')
       .innerJoin('list_members', 'member', 'member.list_id = list.id')

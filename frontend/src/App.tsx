@@ -4,13 +4,15 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { ListsPage } from './pages/ListsPage';  // ← Добавили
+import { ListsPage } from './pages/ListsPage';
 import { ItemsPage } from './pages/ItemsPage';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 import './App.css';
 
 function App() {
   return (
     <AuthProvider>
+      <WebSocketProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -21,7 +23,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <ListsPage />  {/* ← Заменили */}
+                  <ListsPage />
                 </Layout>
               </ProtectedRoute>
             }
@@ -42,6 +44,7 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
+      </WebSocketProvider>
     </AuthProvider>
   );
 }

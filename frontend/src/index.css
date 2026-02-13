@@ -1,4 +1,4 @@
-/* Reset и базовые стили */
+/* CSS Reset and base styles */
 * {
   margin: 0;
   padding: 0;
@@ -15,14 +15,14 @@ body {
   color: #333;
 }
 
-/* Контейнер */
+/* Main container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* Кнопки */
+/* Buttons */
 .btn {
   padding: 10px 20px;
   border: none;
@@ -69,7 +69,7 @@ body {
   background-color: #4b5563;
 }
 
-/* Формы */
+/* Forms */
 .form-group {
   margin-bottom: 15px;
 }
@@ -101,7 +101,7 @@ body {
   margin-top: 5px;
 }
 
-/* Карточки */
+/* Cards */
 .card {
   background: white;
   border-radius: 8px;
@@ -114,7 +114,7 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Утилиты */
+/* Utility classes */
 .text-center {
   text-align: center;
 }

@@ -21,6 +21,7 @@ frontend/.env
 *.swp
 *.swo
 *~
+.claude/
 
 # OS
 .DS_Store
@@ -38,5 +39,3 @@ coverage/
 
 # Misc
 .cache/
-
-.claude/
