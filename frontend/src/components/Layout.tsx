@@ -20,7 +20,7 @@ export const Layout = ({ children }: LayoutProps) => {
       <header className="header">
         <div className="container">
           <div className="header-content">
-            <h1 className="logo">Shopping Lists</h1>
+            <h1 className="logo">Cписки покупок</h1>
             {isAuthenticated && (
               <div className="header-actions">
                 <span className="user-email">{user?.email}</span>

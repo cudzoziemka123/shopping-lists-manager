@@ -23,10 +23,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     setToken(accessToken);
     localStorage.setItem('accessToken', accessToken);
-    
-    // TODO: получить данные пользователя из токена или API
-    // Пока устанавливаем заглушку
-    setUser({ id: '', username: data.email, email: data.email, createdAt: '' });
+    const payload = JSON.parse(atob(accessToken.split('.')[1]));
+    setUser({ id: payload.sub, username: payload.username, email: payload.email, createdAt: new Date().toISOString() }); 
   };
 
   const register = async (data: RegisterRequest) => {

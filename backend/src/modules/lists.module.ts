@@ -13,6 +13,7 @@ import { CreateListUseCase } from '../application/use-cases/lists/create-list.us
 import { GetUserListsUseCase } from '../application/use-cases/lists/get-user-lists.use-case';
 import { DeleteListUseCase } from '../application/use-cases/lists/delete-list.use-case';
 import { AddMemberUseCase } from '../application/use-cases/lists/add-member.use-case';
+import { GetListByIdUseCase } from '../application/use-cases/lists/get-list-by-id.use-case';
 
 // Domain
 import { SHOPPING_LIST_REPOSITORY } from '../domain/repositories/shopping-list.repository.interface';
@@ -39,6 +40,7 @@ import { AuthModule } from './auth.module';
     GetUserListsUseCase,
     DeleteListUseCase,
     AddMemberUseCase,
+    GetListByIdUseCase,
     {
       provide: SHOPPING_LIST_REPOSITORY,
       useClass: ShoppingListRepositoryImpl,

@@ -16,7 +16,7 @@
   color: #3b82f6;
   font-size: 16px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 6px 6px;
   border-radius: 4px;
   transition: background 0.2s;
 }
@@ -26,9 +26,10 @@
 }
 
 .items-title {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 600;
-  margin: 0;
+  text-transform: uppercase;
+  padding: 0px 0px 18px 0px;
   flex: 1;
 }
 

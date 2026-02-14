@@ -1,3 +1,10 @@
+export interface ListMember {
+  id: string;
+  userId: string;
+  listId: string;
+  role: 'owner' | 'member';
+  joinedAt: string;
+}
 // User types
 export interface User {
   id: string;
@@ -5,6 +12,7 @@ export interface User {
   email: string;
   createdAt: string;
 }
+
 
 export interface LoginRequest {
   email: string;
@@ -29,6 +37,7 @@ export interface ShoppingList {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+  members?: ListMember[];
 }
 
 export interface CreateListRequest {
@@ -91,3 +100,4 @@ export interface WebSocketContextType {
     }
   ) => () => void;
 }
+

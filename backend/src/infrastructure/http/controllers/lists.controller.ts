@@ -15,6 +15,7 @@ import { CreateListUseCase } from '../../../application/use-cases/lists/create-l
 import { GetUserListsUseCase } from '../../../application/use-cases/lists/get-user-lists.use-case';
 import { DeleteListUseCase } from '../../../application/use-cases/lists/delete-list.use-case';
 import { AddMemberUseCase } from '../../../application/use-cases/lists/add-member.use-case';
+import { GetListByIdUseCase } from '../../../application/use-cases/lists/get-list-by-id.use-case';
 import { CreateListDto } from '../../../application/dto/lists/create-list.dto';
 import { AddMemberDto } from '../../../application/dto/lists/add-member.dto';
 import type { RequestWithUser } from '../types/request-with-user.interface';
@@ -27,6 +28,7 @@ export class ListsController {
     private readonly getUserListsUseCase: GetUserListsUseCase,
     private readonly deleteListUseCase: DeleteListUseCase,
     private readonly addMemberUseCase: AddMemberUseCase,
+    private readonly getListByIdUseCase: GetListByIdUseCase,
   ) {}
 
   @Post()
@@ -39,10 +41,17 @@ export class ListsController {
     return await this.createListUseCase.execute(dto, userId);
   }
 
+  //TODO Нужно ли здесь перенести Get над post? Вроде так логичнее - сначала получить все списки, а потом уже создавать новый
   @Get()
   async getUserLists(@Request() req: RequestWithUser) {
     const userId = req.user.id;
     return await this.getUserListsUseCase.execute(userId);
+  }
+
+  @Get(':id')
+  async getListById(@Param('id') id: string, @Request() req: RequestWithUser) {
+    const userId = req.user.id;
+    return await this.getListByIdUseCase.execute(id, userId);
   }
 
   @Delete(':id')

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { itemsApi } from '../api/items';
-import type { Item, ItemStatus, ItemPriority } from '../types';
+import { listsApi } from '../api/lists';
+import type { Item, ItemStatus, ItemPriority, ListMember } from '../types';
 import { useWebSocket } from '../contexts/WebSocketContext'
 import './ItemsPage.css';
 
@@ -12,8 +13,16 @@ export const ItemsPage = () => {
 
 
   const [items, setItems] = useState<Item[]>([]);
+  const [listTitle, setListTitle] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  //Members
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [memberEmail, setMemberEmail] = useState('');
+  const [addingMember, setAddingMember] = useState(false);
+  const [members, setMembers] = useState<ListMember[]>([]);
+
 
   // Modal window for creating items
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -28,10 +37,12 @@ export const ItemsPage = () => {
 
     try {
       setLoading(true);
-      const data = await itemsApi.getAll(listId);
-      setItems(data);
-    } catch {
-      setError('Ошибка загрузки товаров');
+      const [itemsData, listData] = await Promise.all([itemsApi.getAll(listId), listsApi.getById(listId)]);
+      setListTitle(listData.title); 
+      setMembers(listData.members || []); // Устанавливаем участников
+      setItems(itemsData);
+    } catch  {
+      setError('Ошибка загрузки данных');
     } finally {
       setLoading(false);
     }
@@ -49,7 +60,8 @@ useEffect(() => {
     // Подписываемся на события
     const unsubscribe = subscribeToItems(listId, {
       onItemCreated: (item) => {
-        console.log('🆕 Item created:', item);
+        // TODO: Логи пока что, нужно сделать уведомления
+        console.log('Item created:', item);
         setItems((prev) => {
           // Избегаем дубликатов
           if (prev.find((i) => i.id === item.id)) {
@@ -59,11 +71,11 @@ useEffect(() => {
         });
       },
       onItemUpdated: (item) => {
-        console.log('📝 Item updated:', item);
+        console.log('Item updated:', item);
         setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
       },
       onItemDeleted: (data) => {
-        console.log('🗑️ Item deleted:', data.itemId);
+        console.log('Item deleted:', data.itemId);
         setItems((prev) => prev.filter((i) => i.id !== data.itemId));
       },
     });
@@ -111,12 +123,33 @@ const handleToggleStatus = async (item: Item) => {
     item.status === 'pending' ? ('purchased' as ItemStatus) : ('pending' as ItemStatus);
 
   try {
-    await itemsApi.update(listId, item.id, {  // ← Просто await, без присваивания
+    await itemsApi.update(listId, item.id, {
       status: newStatus,
     });
-    // WebSocket обновит автоматически через subscribeToItems
   } catch {
     alert('Ошибка обновления статуса');
+  }
+};
+
+const handleAddMember = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!listId) return;
+
+  setAddingMember(true);
+
+  try {
+    await listsApi.addMember(listId, memberEmail);
+    
+    // Перезагружаем список чтобы получить обновленных members
+    await loadItems();
+    
+    setShowMembersModal(false);
+    setMemberEmail('');
+    alert('Участник добавлен!');
+  } catch  {
+    alert('Ошибка добавления участника');
+  } finally {
+    setAddingMember(false);
   }
 };
 
@@ -175,12 +208,20 @@ const handleToggleStatus = async (item: Item) => {
         <button onClick={() => navigate('/lists')} className="btn-back">
           ← Назад к спискам
         </button>
-        <h2 className="items-title">Товары</h2>
-        {isConnected && (
-          <span style={{ color: '#10b981', fontSize: '14px', marginLeft: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px', flex: 1 }}>
+            {isConnected && (
+          <span style={{ color: '#10b981', fontSize: '14px' }}>
             🟢 Online
           </span>
-        )}
+          )}
+        </div>
+        <button
+          onClick={() => setShowMembersModal(true)}
+          className="btn btn-secondary"
+          style={{ marginRight: '10px' }}
+        >
+          👥 Участники ({members.length})
+        </button>
         <button
           onClick={() => setShowCreateModal(true)}
           className="btn btn-primary"
@@ -188,6 +229,8 @@ const handleToggleStatus = async (item: Item) => {
           + Добавить товар
         </button>
       </div>
+      <h2 className="items-title">{listTitle || 'Товары'}</h2>
+
 
       {error && <div className="error-message">{error}</div>}
 
@@ -392,6 +435,103 @@ const handleToggleStatus = async (item: Item) => {
           </div>
         </div>
       )}
+      {/* Модальное окно участников */}
+{showMembersModal && (
+  <div
+    className="modal-overlay"
+    onClick={() => setShowMembersModal(false)}
+  >
+    <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header">
+        <h3>Участники списка</h3>
+        <button
+          onClick={() => setShowMembersModal(false)}
+          className="modal-close"
+        >
+          ×
+        </button>
+      </div>
+
+      <div style={{ padding: '24px' }}>
+        {/* Список участников */}
+        <div style={{ marginBottom: '20px' }}>
+          <h4 style={{ fontSize: '14px', color: '#6b7280', marginBottom: '10px' }}>
+            Текущие участники:
+          </h4>
+          {members.length === 0 ? (
+            <p style={{ color: '#9ca3af', fontSize: '14px' }}>Нет участников</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  style={{
+                    padding: '10px',
+                    background: '#f9fafb',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: '14px' }}>
+                    User ID: {member.userId}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      color: member.role === 'owner' ? '#3b82f6' : '#6b7280',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {member.role === 'owner' ? 'Владелец' : 'Участник'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Форма добавления */}
+        <form onSubmit={handleAddMember}>
+          <div className="form-group">
+            <label htmlFor="memberEmail" className="form-label">
+              Добавить участника по email
+            </label>
+            <input
+              id="memberEmail"
+              type="email"
+              value={memberEmail}
+              onChange={(e) => setMemberEmail(e.target.value)}
+              className="form-input"
+              placeholder="user@example.com"
+              required
+              disabled={addingMember}
+            />
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              onClick={() => setShowMembersModal(false)}
+              className="btn btn-secondary"
+              disabled={addingMember}
+            >
+              Закрыть
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={addingMember}
+            >
+              {addingMember ? 'Добавление...' : 'Добавить'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

@@ -25,13 +25,14 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       auth: { token },
     });
 
+    //TODO  Логи пока что, нужно сделать уведомления
     newSocket.on('connect', () => {
-      console.log('✅ WebSocket connected:', newSocket.id);
+      console.log('WebSocket connected:', newSocket.id);
       setIsConnected(true);
     });
 
     newSocket.on('disconnect', () => {
-      console.log('❌ WebSocket disconnected');
+      console.log('WebSocket disconnected');
       setIsConnected(false);
     });
 
@@ -50,14 +51,14 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
   const joinList = useCallback((listId: string) => {
     if (socketRef.current && isConnected) {
       socketRef.current.emit('join-list', { listId });
-      console.log(`📌 Joined list: ${listId}`);
+      console.log(`Joined list: ${listId}`);
     }
   }, [isConnected]);
 
   const leaveList = useCallback((listId: string) => {
     if (socketRef.current && isConnected) {
       socketRef.current.emit('leave-list', { listId });
-      console.log(`📌 Left list: ${listId}`);
+      console.log(`Left list: ${listId}`);
     }
   }, [isConnected]);
 
