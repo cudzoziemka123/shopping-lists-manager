@@ -13,9 +13,21 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+
+
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('accessToken'));
-  const [user, setUser] = useState<User | null>(null);
+     const [user, setUser] = useState<User | null>(() => {
+     const savedToken = localStorage.getItem('accessToken');
+     if (!savedToken) return null;
+     try {
+       const payload = JSON.parse(atob(savedToken.split('.')[1]));
+       return { id: payload.sub, username: payload.username, email: payload.email, createdAt: '' };
+     } catch {
+       return null;
+     }
+   });
 
   const login = async (data: LoginRequest) => {
     const response = await authApi.login(data);
