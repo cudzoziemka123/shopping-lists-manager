@@ -1,7 +1,8 @@
-import type { Item, ItemPriority } from '../types';
+import type { Item, ItemPriority, ListMember } from '../types';
 
 interface ItemCardProps {
   item: Item;
+  members: ListMember[];
   onToggleStatus: (item: Item) => void;
   onDelete: (itemId: string) => void;
 }
@@ -32,8 +33,22 @@ const getPriorityLabel = (priority: ItemPriority) => {
   }
 };
 
-export const ItemCard = ({ item, onToggleStatus, onDelete }: ItemCardProps) => {
+const formatPurchasedAt = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+export const ItemCard = ({ item, members, onToggleStatus, onDelete }: ItemCardProps) => {
   const isPurchased = item.status === 'purchased';
+  const purchasedByMember = members.find((m) => m.userId === item.purchasedById);
+  const purchasedByUsername = purchasedByMember?.username ?? purchasedByMember?.email ?? null;
 
   return (
     <div className={`item-card${isPurchased ? ' item-purchased' : ''}`}>
@@ -57,6 +72,13 @@ export const ItemCard = ({ item, onToggleStatus, onDelete }: ItemCardProps) => {
               style={{ color: getPriorityColor(item.priority) }}
             >
               {getPriorityLabel(item.priority)}
+            </span>
+          )}
+          {isPurchased && (purchasedByUsername || item.purchasedAt) && (
+            <span className="item-purchased-info">
+              {purchasedByUsername && <>👤 {purchasedByUsername}</>}
+              {purchasedByUsername && item.purchasedAt && ' · '}
+              {item.purchasedAt && <>📅 {formatPurchasedAt(item.purchasedAt)}</>}
             </span>
           )}
         </div>

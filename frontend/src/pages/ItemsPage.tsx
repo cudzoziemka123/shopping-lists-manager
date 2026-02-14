@@ -75,7 +75,7 @@ export const ItemsPage = () => {
         setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
       },
       onItemDeleted: (data) => {
-        notify('Товар удалён', 'info');
+        notify(`Удален товар`, 'info');
         setItems((prev) => prev.filter((i) => i.id !== data.itemId));
       },
     });
@@ -89,10 +89,20 @@ export const ItemsPage = () => {
     const newStatus: ItemStatus =
       item.status === 'pending' ? ('purchased' as ItemStatus) : ('pending' as ItemStatus);
 
+    const optimisticItem: Item = {
+      ...item,
+      status: newStatus,
+      purchasedById: newStatus === 'purchased' ? (user?.id ?? null) : null,
+      purchasedAt: newStatus === 'purchased' ? new Date().toISOString() : null,
+    };
+
+    setItems((prev) => prev.map((i) => (i.id === item.id ? optimisticItem : i)));
+
     try {
       await itemsApi.update(listId, item.id, { status: newStatus });
     } catch {
       notify('Ошибка обновления статуса', 'error');
+      setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
     }
   };
 
@@ -180,6 +190,7 @@ export const ItemsPage = () => {
                   <ItemCard
                     key={item.id}
                     item={item}
+                    members={members}
                     onToggleStatus={handleToggleStatus}
                     onDelete={handleDelete}
                   />
@@ -198,6 +209,7 @@ export const ItemsPage = () => {
                   <ItemCard
                     key={item.id}
                     item={item}
+                    members={members}
                     onToggleStatus={handleToggleStatus}
                     onDelete={handleDelete}
                   />

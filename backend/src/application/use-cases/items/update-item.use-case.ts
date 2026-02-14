@@ -42,21 +42,24 @@ export class UpdateItemUseCase {
       throw new ForbiddenException('You are not a member of this list');
     }
 
-    // 3. Обновить поля
+    // 3. Update item fields
+    const newStatus = dto.status ?? item.status;
     const updatedItem = new Item({
       ...item,
       name: dto.name ?? item.name,
       quantity: dto.quantity ?? item.quantity,
       unit: dto.unit !== undefined ? dto.unit : item.unit,
-      status: dto.status ?? item.status,
+      status: newStatus,
       priority: dto.priority ?? item.priority,
+      purchasedById:
+        newStatus.toString() === 'purchased' ? userId : item.purchasedById,
+      purchasedAt:
+        newStatus.toString() === 'purchased' ? new Date() : item.purchasedAt,
       updatedAt: new Date(),
     });
     const savedItem = await this.itemRepository.update(updatedItem);
 
-    // ← Отправляем WebSocket событие
     this.listsGateway.emitItemUpdated(item.listId, savedItem);
-
     return savedItem;
   }
 }

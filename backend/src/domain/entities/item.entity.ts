@@ -18,6 +18,8 @@ export class Item {
   status: ItemStatus;
   priority: ItemPriority;
   addedById: string;
+  purchasedById?: string | null;
+  purchasedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 
@@ -30,6 +32,8 @@ export class Item {
     status: ItemStatus;
     priority: ItemPriority;
     addedById: string;
+    purchasedById?: string | null;
+    purchasedAt?: Date | null;
     createdAt: Date;
     updatedAt: Date;
   }) {
@@ -41,6 +45,8 @@ export class Item {
     this.status = data.status;
     this.priority = data.priority;
     this.addedById = data.addedById;
+    this.purchasedById = data.purchasedById || null;
+    this.purchasedAt = data.purchasedAt || null;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

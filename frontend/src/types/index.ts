@@ -70,6 +70,8 @@ export interface Item {
   status: ItemStatus;
   priority: ItemPriority;
   addedById: string;
+  purchasedById?: string | null;
+  purchasedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

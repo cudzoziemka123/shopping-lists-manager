@@ -75,14 +75,44 @@ export class ListsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { event: 'left-list', data: { listId: data.listId } };
   }
 
+  private serializeItemForWs(item: {
+    id: string;
+    listId: string;
+    name: string;
+    quantity: number;
+    unit: string | null;
+    status: string;
+    priority: string;
+    addedById: string;
+    purchasedById?: string | null;
+    purchasedAt?: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Record<string, unknown> {
+    return {
+      ...item,
+      purchasedAt: item.purchasedAt
+        ? (item.purchasedAt as Date).toISOString?.() ?? item.purchasedAt
+        : null,
+      createdAt:
+        (item.createdAt as Date).toISOString?.() ??
+        (item.createdAt as unknown as string),
+      updatedAt:
+        (item.updatedAt as Date).toISOString?.() ??
+        (item.updatedAt as unknown as string),
+    };
+  }
+
   // Методы для отправки событий (вызываются из Use Cases)
   emitItemCreated(listId: string, item: any): void {
-    this.server.to(`list-${listId}`).emit('item-created', item);
+    const payload = this.serializeItemForWs(item);
+    this.server.to(`list-${listId}`).emit('item-created', payload);
     this.logger.log(`Emitted item-created to list-${listId}`);
   }
 
   emitItemUpdated(listId: string, item: any): void {
-    this.server.to(`list-${listId}`).emit('item-updated', item);
+    const payload = this.serializeItemForWs(item);
+    this.server.to(`list-${listId}`).emit('item-updated', payload);
     this.logger.log(`Emitted item-updated to list-${listId}`);
   }
 

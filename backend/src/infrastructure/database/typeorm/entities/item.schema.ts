@@ -32,6 +32,12 @@ export class ItemSchema {
   @Column({ name: 'added_by_id', type: 'uuid' })
   addedById!: string;
 
+  @Column({ name: 'purchased_by_id', type: 'uuid', nullable: true })
+  purchasedById!: string | null;
+
+  @Column({ name: 'purchased_at', type: 'timestamp', nullable: true })
+  purchasedAt!: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 

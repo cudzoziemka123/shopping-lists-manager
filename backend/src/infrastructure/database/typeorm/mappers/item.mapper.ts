@@ -16,6 +16,8 @@ export class ItemMapper {
     schema.status = item.status;
     schema.priority = item.priority;
     schema.addedById = item.addedById;
+    schema.purchasedById = item.purchasedById || null;
+    schema.purchasedAt = item.purchasedAt || null;
     schema.createdAt = item.createdAt;
     schema.updatedAt = item.updatedAt;
     return schema;
@@ -31,6 +33,8 @@ export class ItemMapper {
       status: schema.status as ItemStatus,
       priority: schema.priority as ItemPriority,
       addedById: schema.addedById,
+      purchasedById: schema.purchasedById || null,
+      purchasedAt: schema.purchasedAt || null,
       createdAt: schema.createdAt,
       updatedAt: schema.updatedAt,
     });

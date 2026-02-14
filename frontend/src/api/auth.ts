@@ -11,4 +11,10 @@ export const authApi = {
     const response = await apiClient.post('/auth/login', data);
     return response.data;
   },
+
+  // Get user by ID
+  getUserById: async (userId: string): Promise<User> => {
+    const response = await apiClient.get(`/users/${userId}`);
+    return response.data;
+  },
 };
