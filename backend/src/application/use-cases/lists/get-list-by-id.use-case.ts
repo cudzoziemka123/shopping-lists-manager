@@ -8,6 +8,8 @@ import type { IShoppingListRepository } from '../../../domain/repositories/shopp
 import { SHOPPING_LIST_REPOSITORY } from '../../../domain/repositories/shopping-list.repository.interface';
 import type { IListMemberRepository } from '../../../domain/repositories/list-member.repository.interface';
 import { LIST_MEMBER_REPOSITORY } from '../../../domain/repositories/list-member.repository.interface';
+import type { IUserRepository } from '../../../domain/repositories/user.repository.interface';
+import { USER_REPOSITORY } from '../../../domain/repositories/user.repository.interface';
 
 @Injectable()
 export class GetListByIdUseCase {
@@ -16,6 +18,8 @@ export class GetListByIdUseCase {
     private readonly listRepository: IShoppingListRepository,
     @Inject(LIST_MEMBER_REPOSITORY)
     private readonly memberRepository: IListMemberRepository,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
   ) {}
 
   async execute(listId: string, userId: string) {
@@ -32,6 +36,18 @@ export class GetListByIdUseCase {
       throw new ForbiddenException('You are not a member of this list');
     }
 
-    return { ...list, members };
+    // Обогащаем участников данными пользователя
+    const enrichedMembers = await Promise.all(
+      members.map(async (member) => {
+        const user = await this.userRepository.findById(member.userId);
+        return {
+          ...member,
+          email: user?.email ?? null,
+          username: user?.username ?? null,
+        };
+      }),
+    );
+
+    return { ...list, members: enrichedMembers };
   }
 }

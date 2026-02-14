@@ -4,6 +4,8 @@ export interface ListMember {
   listId: string;
   role: 'owner' | 'member';
   joinedAt: string;
+  email: string | null;
+  username: string | null;
 }
 // User types
 export interface User {

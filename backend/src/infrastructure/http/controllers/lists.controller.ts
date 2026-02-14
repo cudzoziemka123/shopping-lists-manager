@@ -15,6 +15,7 @@ import { CreateListUseCase } from '../../../application/use-cases/lists/create-l
 import { GetUserListsUseCase } from '../../../application/use-cases/lists/get-user-lists.use-case';
 import { DeleteListUseCase } from '../../../application/use-cases/lists/delete-list.use-case';
 import { AddMemberUseCase } from '../../../application/use-cases/lists/add-member.use-case';
+import { RemoveMemberUseCase } from '../../../application/use-cases/lists/remove-member.use-case';
 import { GetListByIdUseCase } from '../../../application/use-cases/lists/get-list-by-id.use-case';
 import { CreateListDto } from '../../../application/dto/lists/create-list.dto';
 import { AddMemberDto } from '../../../application/dto/lists/add-member.dto';
@@ -28,6 +29,7 @@ export class ListsController {
     private readonly getUserListsUseCase: GetUserListsUseCase,
     private readonly deleteListUseCase: DeleteListUseCase,
     private readonly addMemberUseCase: AddMemberUseCase,
+    private readonly removeMemberUseCase: RemoveMemberUseCase,
     private readonly getListByIdUseCase: GetListByIdUseCase,
   ) {}
 
@@ -41,7 +43,6 @@ export class ListsController {
     return await this.createListUseCase.execute(dto, userId);
   }
 
-  //TODO Нужно ли здесь перенести Get над post? Вроде так логичнее - сначала получить все списки, а потом уже создавать новый
   @Get()
   async getUserLists(@Request() req: RequestWithUser) {
     const userId = req.user.id;
@@ -73,5 +74,16 @@ export class ListsController {
   ) {
     const userId = req.user.id;
     return await this.addMemberUseCase.execute(listId, dto, userId);
+  }
+
+  @Delete(':id/members/:memberId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeMember(
+    @Param('id') listId: string,
+    @Param('memberId') memberId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    const userId = req.user.id;
+    await this.removeMemberUseCase.execute(listId, memberId, userId);
   }
 }

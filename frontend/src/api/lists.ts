@@ -23,4 +23,8 @@ export const listsApi = {
   addMember: async (listId: string, usernameOrEmail: string): Promise<void> => {
     await apiClient.post(`/lists/${listId}/members`, { usernameOrEmail });
   },
+
+  removeMember: async (listId: string, memberId: string): Promise<void> => {
+    await apiClient.delete(`/lists/${listId}/members/${memberId}`);
+  },
 };

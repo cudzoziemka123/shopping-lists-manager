@@ -63,7 +63,6 @@
 }
 
 .list-card-content {
-  cursor: pointer;
   margin-bottom: 15px;
 }
 
@@ -139,7 +138,6 @@
   border: none;
   font-size: 32px;
   color: #6b7280;
-  cursor: pointer;
   line-height: 1;
   padding: 0;
   width: 32px;

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { useNotification } from './NotificationContext';
 import type { Item, WebSocketContextType} from '../types';
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -11,6 +12,7 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const { token, isAuthenticated } = useAuth();
+  const { notify } = useNotification();
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
@@ -25,20 +27,19 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       auth: { token },
     });
 
-    //TODO  Логи пока что, нужно сделать уведомления
     newSocket.on('connect', () => {
-      console.log('WebSocket connected:', newSocket.id);
       setIsConnected(true);
+      notify('Подключено к серверу', 'success');
     });
 
     newSocket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
       setIsConnected(false);
+      notify('Отключено от сервера', 'error');
     });
 
-    newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+    newSocket.on('connect_error', () => {
       setIsConnected(false);
+      notify('Ошибка подключения к серверу', 'error');
     });
 
     socketRef.current = newSocket;
@@ -46,24 +47,22 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       newSocket.disconnect();
     };
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, notify]);
 
   const joinList = useCallback((listId: string) => {
     if (socketRef.current && isConnected) {
       socketRef.current.emit('join-list', { listId });
-      console.log(`Joined list: ${listId}`);
     }
   }, [isConnected]);
 
   const leaveList = useCallback((listId: string) => {
     if (socketRef.current && isConnected) {
       socketRef.current.emit('leave-list', { listId });
-      console.log(`Left list: ${listId}`);
     }
   }, [isConnected]);
 
   const subscribeToItems = useCallback((
-    listId: string,
+    _listId: string,
     callbacks: {
       onItemCreated?: (item: Item) => void;
       onItemUpdated?: (item: Item) => void;

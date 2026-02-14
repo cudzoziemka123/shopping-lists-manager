@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listsApi } from '../api/lists';
+import { ListCard } from '../components/ListCard';
+import { CreateListModal } from '../components/CreateListModal';
+import { useNotification } from '../contexts/NotificationContext';
 import type { ShoppingList } from '../types';
 import './ListsPage.css';
 
@@ -9,13 +12,10 @@ export const ListsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [creating, setCreating] = useState(false);
 
   const navigate = useNavigate();
+  const { notify } = useNotification();
 
-  // Загрузка списков при монтировании
   useEffect(() => {
     loadLists();
   }, []);
@@ -32,23 +32,6 @@ export const ListsPage = () => {
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreating(true);
-
-    try {
-      const newList = await listsApi.create({ title, description });
-      setLists([newList, ...lists]); // Добавляем в начало
-      setShowCreateModal(false);
-      setTitle('');
-      setDescription('');
-    } catch {
-      alert('Ошибка создания списка');
-    } finally {
-      setCreating(false);
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('Удалить список?')) return;
 
@@ -56,12 +39,17 @@ export const ListsPage = () => {
       await listsApi.delete(id);
       setLists(lists.filter((list) => list.id !== id));
     } catch {
-      alert('Ошибка удаления списка');
+      notify('Ошибка удаления списка', 'error');
     }
   };
 
   const handleOpenList = (id: string) => {
     navigate(`/lists/${id}/items`);
+  };
+
+  const handleListCreated = (newList: ShoppingList) => {
+    setLists([newList, ...lists]);
+    setShowCreateModal(false);
   };
 
   if (loading) {
@@ -99,104 +87,21 @@ export const ListsPage = () => {
       ) : (
         <div className="lists-grid">
           {lists.map((list) => (
-            <div key={list.id} className="list-card">
-              <div
-                className="list-card-content"
-                onClick={() => handleOpenList(list.id)}
-              >
-                <h3 className="list-card-title">{list.title}</h3>
-                {list.description && (
-                  <p className="list-card-description">{list.description}</p>
-                )}
-                <div className="list-card-date">
-                  {new Date(list.createdAt).toLocaleDateString('ru-RU')}
-                </div>
-              </div>
-              <div className="list-card-actions">
-                <button
-                  onClick={() => handleOpenList(list.id)}
-                  className="btn btn-secondary btn-sm"
-                >
-                  Открыть
-                </button>
-                <button
-                  onClick={() => handleDelete(list.id)}
-                  className="btn btn-danger btn-sm"
-                >
-                  Удалить
-                </button>
-              </div>
-            </div>
+            <ListCard
+              key={list.id}
+              list={list}
+              onOpen={handleOpenList}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
 
-      {/* Модальное окно создания списка */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Создать список</h3>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="modal-close"
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate}>
-              <div className="form-group">
-                <label htmlFor="title" className="form-label">
-                  Название
-                </label>
-                <input
-                  id="title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="form-input"
-                  required
-                  disabled={creating}
-                  maxLength={100}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="description" className="form-label">
-                  Описание (необязательно)
-                </label>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="form-input form-textarea"
-                  disabled={creating}
-                  maxLength={500}
-                  rows={3}
-                />
-              </div>
-
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="btn btn-secondary"
-                  disabled={creating}
-                >
-                  Отмена
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={creating}
-                >
-                  {creating ? 'Создание...' : 'Создать'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CreateListModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleListCreated}
+        />
       )}
     </div>
   );

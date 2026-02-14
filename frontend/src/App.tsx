@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
@@ -13,6 +14,7 @@ import './App.css';
 function App() {
   return (
     <AuthProvider>
+      <NotificationProvider>
       <BrowserRouter>
         <WebSocketProvider>
           <Routes>
@@ -44,8 +46,9 @@ function App() {
             <Route path="/" element={<Navigate to="/lists" replace />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
-        </WebSocketProvider>  
+        </WebSocketProvider>
       </BrowserRouter>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
